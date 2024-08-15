@@ -23,7 +23,7 @@ steps:
     SonarCloud: 'TestProject'
     organization: 'baladevopsforyou'
     scannerMode: 'MSBuild'
-    projectKey: 'dce378492bc89673310f9c11ac2ff6cae5557069'
+    projectKey: ''
     projectName: 'TestProject-AzureDevops-CI-CD'
 
 - task: VSBuild@1
