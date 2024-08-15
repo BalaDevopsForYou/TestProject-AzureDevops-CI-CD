@@ -2,7 +2,7 @@ trigger:
 - master  # Adjust this to your main branch if different
 
 pool:
-  vmImage: 'windows-latest'
+  vmImage: 'ubuntu-latest'
 
 variables:
   solution: '**/*.sln'
