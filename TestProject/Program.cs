@@ -1,2 +1,9 @@
-﻿// See https://aka.ms/new-console-template for more information
-Console.WriteLine("Hello, World!");
+try
+{
+    Console.WriteLine("Hello, World!");
+
+}
+catch (Exception ex)
+{
+    Console.WriteLine("An error occured:" + ex.Message);
+}
