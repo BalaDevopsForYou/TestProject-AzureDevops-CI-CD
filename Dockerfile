@@ -11,7 +11,6 @@ RUN apt-get update && apt-get install -y unzip && \
     rm app.zip
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-FROM gcr.io/distroless/dotnet/aspnet:8.0
 WORKDIR /app
 
 # Copy the extracted files from the build stage
@@ -21,4 +20,4 @@ COPY --from=build /app .
 EXPOSE 80
 
 # Set the entry point to run the application
-ENTRYPOINT ["dotnet", "your-project.dll"]
+ENTRYPOINT ["dotnet", "TestProject.dll"]
