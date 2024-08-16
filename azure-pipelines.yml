@@ -1,0 +1,108 @@
+trigger:
+- master
+
+pool:
+  name: 'LinuxPool'  # Default pool for Linux
+
+variables:
+  projects: '**/*.csproj'
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'Release'
+  artifactName: 'drop'  # Define the artifact name
+  dockerImageName: 'testprojectcicd.azurecr.io/yourimage'  # Replace with your ACR login server and image name
+  dockerImageTag: '$(Build.BuildId)'  # Use the build ID as the tag
+
+jobs:
+- job: BuildAndTest
+  displayName: 'Build and Test'
+  pool:
+    name: 'LinuxPool'  # Default pool for Linux
+
+  steps:
+  - script: |
+      echo "Checking Docker installation on Linux..."
+      if ! [ -x "$(command -v docker)" ]; then
+        echo "Docker is not installed. Installing Docker..."
+        sudo apt-get update
+        sudo apt-get install -y docker.io
+        sudo systemctl start docker
+        sudo systemctl enable docker
+        sudo usermod -aG docker $(whoami)
+      else
+        echo "Docker is already installed on Linux."
+      fi
+    displayName: 'Check and Install Docker on Linux'
+    condition: eq(variables['Agent.OS'], 'Linux')
+
+  - script: |
+      echo "Cleaning up old build artifacts and temporary files..."
+      rm -rf $(Build.ArtifactStagingDirectory)/*
+    displayName: 'Clean up old build artifacts and temporary files'
+    condition: and(succeeded(), eq(variables['Agent.OS'], 'Linux'))
+
+  - powershell: |
+      Write-Host "Cleaning up old build artifacts and temporary files..."
+      Remove-Item -Path "$(Build.ArtifactStagingDirectory)\*" -Recurse -Force
+    displayName: 'Clean up old build artifacts and temporary files'
+    condition: and(succeeded(), eq(variables['Agent.OS'], 'Windows'))
+
+  - task: UseDotNet@2
+    displayName: 'Install .NET SDK 8.0'
+    inputs:
+      packageType: 'sdk'
+      version: '8.0.x'
+      installationPath: $(Agent.ToolsDirectory)/dotnet
+
+  - task: DotNetCoreCLI@2
+    displayName: 'Restore NuGet packages'
+    inputs:
+      command: 'restore'
+      projects: '$(projects)'
+
+  - task: DotNetCoreCLI@2
+    displayName: 'Build the project'
+    inputs:
+      command: 'build'
+      projects: '$(projects)'
+      arguments: '--configuration $(buildConfiguration)'
+
+  - task: DotNetCoreCLI@2
+    displayName: 'Run unit tests and collect coverage'
+    inputs:
+      command: 'test'
+      projects: '**/*Tests/*.csproj'
+      arguments: '--configuration $(buildConfiguration) --collect:"Code Coverage"'
+
+  - task: DotNetCoreCLI@2
+    displayName: 'Publish the project'
+    inputs:
+      command: 'publish'
+      projects: '$(projects)'
+      arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
+      publishWebProjects: false  # Disable web project detection
+
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish the artifact to drop'
+    inputs:
+      PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      ArtifactName: '$(artifactName)'
+      publishLocation: 'Container'
+
+  - task: DownloadBuildArtifacts@0
+    inputs:
+      buildType: 'specific'
+      project: '$(System.TeamProjectId)'
+      pipeline: '$(Build.DefinitionId)'
+      buildVersionToDownload: 'latest'
+      downloadPath: '$(Pipeline.Workspace)/drop'
+
+  - task: Docker@2
+    displayName: 'Build and push Docker image to ACR'
+    inputs:
+      containerRegistry: 'ACRDevopsconnection'  # Use the name of your service connection
+      repository: 'testprojectcicd/yourimage'  # ACR repository path (without the ACR login server)
+      command: 'buildAndPush'
+      Dockerfile: '**/Dockerfile'
+      buildContext: '$(Pipeline.Workspace)/drop'  # Ensure the path to the Dockerfile is correct
+      tags: |
+        $(dockerImageTag)
