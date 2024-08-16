@@ -88,6 +88,14 @@ jobs:
       ArtifactName: '$(artifactName)'
       publishLocation: 'Container'
 
+  - task: DownloadBuildArtifacts@0
+    inputs:
+      buildType: 'specific'
+      project: '$(System.TeamProjectId)'
+      pipeline: '$(Build.DefinitionId)'
+      buildVersionToDownload: 'latest'
+      downloadPath: '$(Pipeline.Workspace)/drop'
+
   - task: Docker@2
     displayName: 'Build and push Docker image to ACR'
     inputs:
@@ -95,6 +103,6 @@ jobs:
       repository: 'testprojectcicd/yourimage'  # ACR repository path (without the ACR login server)
       command: 'buildAndPush'
       Dockerfile: '**/Dockerfile'
-      buildContext: '$(Build.SourcesDirectory)'  # Ensure the path to the Dockerfile is correct
+      buildContext: '$(Pipeline.Workspace)/drop'  # Ensure the path to the Dockerfile is correct
       tags: |
         $(dockerImageTag)
