@@ -94,6 +94,7 @@ jobs:
       containerRegistry: 'ACRDevopsconnection'  # Use the name of your service connection
       repository: 'testprojectcicd/yourimage'  # ACR repository path (without the ACR login server)
       command: 'buildAndPush'
-      Dockerfile: '**/Dockerfile'  # Ensure the path to the Dockerfile is correct
+      Dockerfile: '**/Dockerfile'
+      buildContext: '$(Build.SourcesDirectory)'  # Ensure the path to the Dockerfile is correct
       tags: |
         $(dockerImageTag)
