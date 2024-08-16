@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y unzip && \
     unzip app.zip -d . && \
     rm app.zip
 
-# Stage 2: Use a distroless base image to run the application
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 FROM gcr.io/distroless/dotnet/aspnet:8.0
 WORKDIR /app
 
