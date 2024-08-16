@@ -3,22 +3,20 @@ trigger:
 
 pool:
   name: 'Linux-Latest'  # Default pool for Linux
-  demands:
-    - Agent.Name -equals LinuxVM  # Optional: Specify agent name for Linux
 
 variables:
   projects: '**/*.csproj'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
   artifactName: 'drop'  # Define the artifact name
+  dockerImageName: 'testprojectcicd.azurecr.io/yourimage'  # Replace with your ACR login server and image name
+  dockerImageTag: '$(Build.BuildId)'  # Use the build ID as the tag
 
 jobs:
 - job: BuildAndTest
   displayName: 'Build and Test'
   pool:
     name: 'Linux-Latest'  # Default pool for Linux
-    demands:
-      - Agent.Name -equals LinuxVM  # Optional: Specify agent name for Linux
 
   steps:
   - checkout: self
@@ -78,3 +76,12 @@ jobs:
       ArtifactName: '$(artifactName)'
       publishLocation: 'Container'
 
+  - task: Docker@2
+    displayName: 'Build and push Docker image to ACR'
+    inputs:
+      containerRegistry: 'MyACRconnection'  # Use the name of your service connection
+      repository: 'testprojectcicd/yourimage'  # ACR repository path (without the ACR login server)
+      command: 'buildAndPush'
+      Dockerfile: '**/Dockerfile'  # Ensure the path to the Dockerfile is correct
+      tags: |
+        $(dockerImageTag)  # Just the tag without the image name
