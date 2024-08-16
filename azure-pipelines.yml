@@ -96,4 +96,4 @@ jobs:
       command: 'buildAndPush'
       Dockerfile: '**/Dockerfile'  # Ensure the path to the Dockerfile is correct
       tags: |
-        $(dockerImageTag)  # Just the tag without the image name
+        $(dockerImageTag)
