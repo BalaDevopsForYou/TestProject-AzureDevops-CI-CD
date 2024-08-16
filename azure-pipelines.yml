@@ -22,7 +22,7 @@ jobs:
 
   steps:
   - checkout: self
-      displayName: 'Git Checkout'
+    displayName: 'Git Checkout'
   
   - script: |
       echo "Cleaning up old build artifacts and temporary files..."
