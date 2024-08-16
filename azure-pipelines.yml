@@ -16,7 +16,7 @@ jobs:
 - job: BuildAndTest
   displayName: 'Build and Test'
   pool:
-    name: 'Linux-Latest'  # Default pool for Linux
+    name: 'LinuxPool'  # Default pool for Linux
 
   steps:
   - script: |
