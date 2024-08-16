@@ -13,39 +13,52 @@ variables:
   artifactName: 'drop'  # Define the artifact name
 
 steps:
-- checkout: self  # Checkout the source code
+- checkout: self
+  displayName: 'Checkout source code'
 
-- task: UseDotNet@2  # Install the .NET Core SDK
+- script: |
+    echo "Cleaning up old build artifacts and temporary files..."
+    rm -rf $(Build.ArtifactStagingDirectory)/*
+  displayName: 'Clean up old build artifacts and temporary files'
+
+- task: UseDotNet@2
+  displayName: 'Install .NET SDK 8.0'
   inputs:
     packageType: 'sdk'
-    version: '8.0.x'  # Use the appropriate .NET SDK version
+    version: '8.0.x'
     installationPath: $(Agent.ToolsDirectory)/dotnet
 
-- task: DotNetCoreCLI@2  # Restore NuGet packages
+- task: DotNetCoreCLI@2
+  displayName: 'Restore NuGet packages'
   inputs:
     command: 'restore'
     projects: '$(projects)'
 
-- task: DotNetCoreCLI@2  # Build the project
+- task: DotNetCoreCLI@2
+  displayName: 'Build the project'
   inputs:
     command: 'build'
     projects: '$(projects)'
     arguments: '--configuration $(buildConfiguration)'
 
-- task: DotNetCoreCLI@2  # Run unit tests and collect coverage
+- task: DotNetCoreCLI@2
+  displayName: 'Run unit tests and collect coverage'
   inputs:
     command: 'test'
     projects: '**/*Tests/*.csproj'
     arguments: '--configuration $(buildConfiguration) --collect:"Code Coverage"'
 
-- task: DotNetCoreCLI@2  # Publish the project to a directory
+- task: DotNetCoreCLI@2
+  displayName: 'Publish the project'
   inputs:
     command: 'publish'
     projects: '$(projects)'
     arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
+    publishWebProjects: false  # Disable web project detection
 
-- task: PublishBuildArtifacts@1  # Publish the artifact to the drop container
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish the artifact to drop'
   inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)'  # Path to the published output
-    ArtifactName: '$(artifactName)'  # Name of the artifact
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: '$(artifactName)'
     publishLocation: 'Container'
