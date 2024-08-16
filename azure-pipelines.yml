@@ -2,7 +2,7 @@ trigger:
 - master
 
 pool:
-  name: 'Linux-Latest'  # Default pool for Linux
+  name: 'LinuxPool'  # Default pool for Linux
 
 variables:
   projects: '**/*.csproj'
@@ -19,9 +19,6 @@ jobs:
     name: 'Linux-Latest'  # Default pool for Linux
 
   steps:
-  - checkout: self
-    displayName: 'Git Checkout'
-  
   - script: |
       echo "Cleaning up old build artifacts and temporary files..."
       rm -rf $(Build.ArtifactStagingDirectory)/*
@@ -79,7 +76,7 @@ jobs:
   - task: Docker@2
     displayName: 'Build and push Docker image to ACR'
     inputs:
-      containerRegistry: 'MyACRconnection'  # Use the name of your service connection
+      containerRegistry: 'ACRDevopsconnection'  # Use the name of your service connection
       repository: 'testprojectcicd/yourimage'  # ACR repository path (without the ACR login server)
       command: 'buildAndPush'
       Dockerfile: '**/Dockerfile'  # Ensure the path to the Dockerfile is correct
