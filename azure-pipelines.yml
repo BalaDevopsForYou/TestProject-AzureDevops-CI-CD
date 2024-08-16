@@ -2,9 +2,9 @@ trigger:
 - master
 
 pool:
-  name: 'Linux-Latest'  # Name of the self-hosted agent pool
+  name: 'Linux-Latest'  # Default pool for Linux
   demands:
-    - Agent.Name -equals LinuxVM  # Specifies the agent name within the pool (optional)
+    - Agent.Name -equals LinuxVM  # Optional: Specify agent name for Linux
 
 variables:
   projects: '**/*.csproj'
@@ -12,53 +12,69 @@ variables:
   buildConfiguration: 'Release'
   artifactName: 'drop'  # Define the artifact name
 
-steps:
-- checkout: self
-  displayName: 'Checkout source code'
+jobs:
+- job: BuildAndTest
+  displayName: 'Build and Test'
+  pool:
+    name: 'Linux-Latest'  # Default pool for Linux
+    demands:
+      - Agent.Name -equals LinuxVM  # Optional: Specify agent name for Linux
 
-- script: |
-    echo "Cleaning up old build artifacts and temporary files..."
-    rm -rf $(Build.ArtifactStagingDirectory)/*
-  displayName: 'Clean up old build artifacts and temporary files'
+  steps:
+  - checkout: self
+    displayName: 'Checkout source code'
 
-- task: UseDotNet@2
-  displayName: 'Install .NET SDK 8.0'
-  inputs:
-    packageType: 'sdk'
-    version: '8.0.x'
-    installationPath: $(Agent.ToolsDirectory)/dotnet
+  - script: |
+      echo "Cleaning up old build artifacts and temporary files..."
+      rm -rf $(Build.ArtifactStagingDirectory)/*
+    displayName: 'Clean up old build artifacts and temporary files'
+    condition: and(succeeded(), eq(variables['Agent.OS'], 'Linux'))
 
-- task: DotNetCoreCLI@2
-  displayName: 'Restore NuGet packages'
-  inputs:
-    command: 'restore'
-    projects: '$(projects)'
+  - powershell: |
+      Write-Host "Cleaning up old build artifacts and temporary files..."
+      Remove-Item -Path "$(Build.ArtifactStagingDirectory)\*" -Recurse -Force
+    displayName: 'Clean up old build artifacts and temporary files'
+    condition: and(succeeded(), eq(variables['Agent.OS'], 'Windows'))
 
-- task: DotNetCoreCLI@2
-  displayName: 'Build the project'
-  inputs:
-    command: 'build'
-    projects: '$(projects)'
-    arguments: '--configuration $(buildConfiguration)'
+  - task: UseDotNet@2
+    displayName: 'Install .NET SDK 8.0'
+    inputs:
+      packageType: 'sdk'
+      version: '8.0.x'
+      installationPath: $(Agent.ToolsDirectory)/dotnet
 
-- task: DotNetCoreCLI@2
-  displayName: 'Run unit tests and collect coverage'
-  inputs:
-    command: 'test'
-    projects: '**/*Tests/*.csproj'
-    arguments: '--configuration $(buildConfiguration) --collect:"Code Coverage"'
+  - task: DotNetCoreCLI@2
+    displayName: 'Restore NuGet packages'
+    inputs:
+      command: 'restore'
+      projects: '$(projects)'
 
-- task: DotNetCoreCLI@2
-  displayName: 'Publish the project'
-  inputs:
-    command: 'publish'
-    projects: '$(projects)'
-    arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
-    publishWebProjects: false  # Disable web project detection
+  - task: DotNetCoreCLI@2
+    displayName: 'Build the project'
+    inputs:
+      command: 'build'
+      projects: '$(projects)'
+      arguments: '--configuration $(buildConfiguration)'
 
-- task: PublishBuildArtifacts@1
-  displayName: 'Publish the artifact to drop'
-  inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-    ArtifactName: '$(artifactName)'
-    publishLocation: 'Container'
+  - task: DotNetCoreCLI@2
+    displayName: 'Run unit tests and collect coverage'
+    inputs:
+      command: 'test'
+      projects: '**/*Tests/*.csproj'
+      arguments: '--configuration $(buildConfiguration) --collect:"Code Coverage"'
+
+  - task: DotNetCoreCLI@2
+    displayName: 'Publish the project'
+    inputs:
+      command: 'publish'
+      projects: '$(projects)'
+      arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
+      publishWebProjects: false  # Disable web project detection
+
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish the artifact to drop'
+    inputs:
+      PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      ArtifactName: '$(artifactName)'
+      publishLocation: 'Container'
+
