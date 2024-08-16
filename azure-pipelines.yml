@@ -21,7 +21,9 @@ jobs:
       - Agent.Name -equals LinuxVM  # Optional: Specify agent name for Linux
 
   steps:
-
+  - checkout: self
+      displayName: 'Git Checkout'
+  
   - script: |
       echo "Cleaning up old build artifacts and temporary files..."
       rm -rf $(Build.ArtifactStagingDirectory)/*
