@@ -1,0 +1,51 @@
+trigger:
+- master
+
+pool:
+  name: 'Linux-Latest'  # Name of the self-hosted agent pool
+  demands:
+    - Agent.Name -equals LinuxVM  # Specifies the agent name within the pool (optional)
+
+variables:
+  projects: '**/*.csproj'
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'Release'
+  artifactName: 'drop'  # Define the artifact name
+
+steps:
+- checkout: self  # Checkout the source code
+
+- task: UseDotNet@2  # Install the .NET Core SDK
+  inputs:
+    packageType: 'sdk'
+    version: '8.0.x'  # Use the appropriate .NET SDK version
+    installationPath: $(Agent.ToolsDirectory)/dotnet
+
+- task: DotNetCoreCLI@2  # Restore NuGet packages
+  inputs:
+    command: 'restore'
+    projects: '$(projects)'
+
+- task: DotNetCoreCLI@2  # Build the project
+  inputs:
+    command: 'build'
+    projects: '$(projects)'
+    arguments: '--configuration $(buildConfiguration)'
+
+- task: DotNetCoreCLI@2  # Run unit tests and collect coverage
+  inputs:
+    command: 'test'
+    projects: '**/*Tests/*.csproj'
+    arguments: '--configuration $(buildConfiguration) --collect:"Code Coverage"'
+
+- task: DotNetCoreCLI@2  # Publish the project to a directory
+  inputs:
+    command: 'publish'
+    projects: '$(projects)'
+    arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
+
+- task: PublishBuildArtifacts@1  # Publish the artifact to the drop container
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'  # Path to the published output
+    ArtifactName: '$(artifactName)'  # Name of the artifact
+    publishLocation: 'Container'
