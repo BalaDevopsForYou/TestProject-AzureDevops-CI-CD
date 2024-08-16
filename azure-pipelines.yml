@@ -21,8 +21,6 @@ jobs:
       - Agent.Name -equals LinuxVM  # Optional: Specify agent name for Linux
 
   steps:
-  - checkout: self
-    displayName: 'Checkout source code'
 
   - script: |
       echo "Cleaning up old build artifacts and temporary files..."
