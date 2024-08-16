@@ -20,6 +20,21 @@ jobs:
 
   steps:
   - script: |
+      echo "Checking Docker installation on Linux..."
+      if ! [ -x "$(command -v docker)" ]; then
+        echo "Docker is not installed. Installing Docker..."
+        sudo apt-get update
+        sudo apt-get install -y docker.io
+        sudo systemctl start docker
+        sudo systemctl enable docker
+        sudo usermod -aG docker $(whoami)
+      else
+        echo "Docker is already installed on Linux."
+      fi
+    displayName: 'Check and Install Docker on Linux'
+    condition: eq(variables['Agent.OS'], 'Linux')
+
+  - script: |
       echo "Cleaning up old build artifacts and temporary files..."
       rm -rf $(Build.ArtifactStagingDirectory)/*
     displayName: 'Clean up old build artifacts and temporary files'
