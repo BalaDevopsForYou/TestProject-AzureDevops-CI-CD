@@ -3,7 +3,7 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /app
 
 # Copy the zip file from the artifact staging directory
-COPY ./drop/*.zip ./app.zip
+COPY drop/*.zip ./app.zip
 
 # Extract the contents of the zip file
 RUN apt-get update && apt-get install -y unzip && \
