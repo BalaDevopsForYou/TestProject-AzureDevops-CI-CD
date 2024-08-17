@@ -2,21 +2,21 @@ trigger:
 - master
 
 pool:
-  name: 'LinuxPool'  # Default pool for Linux
+  name: 'LinuxPool'
 
 variables:
   projects: '**/*.csproj'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
-  artifactName: 'drop'  # Define the artifact name
-  dockerImageName: 'testprojectcicd.azurecr.io/yourimage'  # Replace with your ACR login server and image name
-  dockerImageTag: '$(Build.BuildId)'  # Use the build ID as the tag
+  artifactName: 'drop'
+  dockerImageName: 'testprojectcicd.azurecr.io/yourimage'
+  dockerImageTag: '$(Build.BuildId)'
 
 jobs:
 - job: BuildAndTest
   displayName: 'Build and Test'
   pool:
-    name: 'LinuxPool'  # Default pool for Linux
+    name: 'LinuxPool'
 
   steps:
   - script: |
@@ -39,12 +39,6 @@ jobs:
       rm -rf $(Build.ArtifactStagingDirectory)/*
     displayName: 'Clean up old build artifacts and temporary files'
     condition: and(succeeded(), eq(variables['Agent.OS'], 'Linux'))
-
-  - powershell: |
-      Write-Host "Cleaning up old build artifacts and temporary files..."
-      Remove-Item -Path "$(Build.ArtifactStagingDirectory)\*" -Recurse -Force
-    displayName: 'Clean up old build artifacts and temporary files'
-    condition: and(succeeded(), eq(variables['Agent.OS'], 'Windows'))
 
   - task: UseDotNet@2
     displayName: 'Install .NET SDK 8.0'
@@ -78,32 +72,30 @@ jobs:
     inputs:
       command: 'publish'
       projects: '$(projects)'
-      arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
-      publishWebProjects: false  # Disable web project detection
+      arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)/$(artifactName)'
+      publishWebProjects: false
 
   - task: PublishBuildArtifacts@1
     displayName: 'Publish the artifact to drop'
     inputs:
-      PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      PathtoPublish: '$(Build.ArtifactStagingDirectory)/$(artifactName)'
       ArtifactName: '$(artifactName)'
       publishLocation: 'Container'
-
 
   - script: |
       echo "Listing contents of $(Build.ArtifactStagingDirectory):"
       ls -la $(Build.ArtifactStagingDirectory)
-      echo "Listing contents of $(Build.ArtifactStagingDirectory)/drop:"
-      ls -la $(Build.ArtifactStagingDirectory)/drop
+      echo "Listing contents of $(Build.ArtifactStagingDirectory)/$(artifactName):"
+      ls -la $(Build.ArtifactStagingDirectory)/$(artifactName)
     displayName: 'Verify drop folder contents'
-
 
   - task: Docker@2
     displayName: 'Build and push Docker image to ACR'
     inputs:
-      containerRegistry: 'ACRDevopsconnection'  # Use the name of your service connection
-      repository: 'testprojectcicd/yourimage'  # ACR repository path (without the ACR login server)
+      containerRegistry: 'ACRDevopsconnection'
+      repository: 'testprojectcicd/yourimage'
       command: 'buildAndPush'
       Dockerfile: '**/Dockerfile'
-      buildContext: '$(Build.ArtifactStagingDirectory)'
+      buildContext: '$(Build.ArtifactStagingDirectory)/$(artifactName)'
       tags: |
         $(dockerImageTag)
