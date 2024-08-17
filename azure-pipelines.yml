@@ -15,7 +15,7 @@ variables:
 
 jobs:
 - job: BuildAndTest
-  displayName: 'Build and Test'
+  displayName: 'Build, Test, Scan, and Push Docker Image'
   pool:
     name: 'LinuxPool'
 
@@ -83,21 +83,29 @@ jobs:
       ArtifactName: '$(artifactName)'
       publishLocation: 'Container'
 
-
-  - script: |
-      echo "Running Trivy scan..."
-      trivy image --severity CRITICAL,HIGH --exit-code 1 --no-progress testprojectcicd.azurecr.io/$(ACRrepositoryName):$(Build.BuildId)
-    displayName: 'Scan Docker Image with Trivy'
-    continueOnError: false
-
-
+  # Build the Docker image before scanning
   - task: Docker@2
-    displayName: 'Build and push Docker image to ACR'
+    displayName: 'Build Docker image'
     inputs:
       containerRegistry: '$(ACRserviceconnectionName)'
       repository: '$(ACRrepositoryName)'
-      command: 'buildAndPush'
+      command: 'build'
       Dockerfile: 'Dockerfile'  # Adjust if Dockerfile path is different
       buildContext: '$(Build.ArtifactStagingDirectory)/$(artifactName)'
+      tags: |
+        $(dockerImageTag)
+
+  - script: |
+      echo "Running Trivy scan..."
+      trivy image --severity CRITICAL,HIGH --exit-code 1 --no-progress testprojectcicd.azurecr.io/$(ACRrepositoryName):$(dockerImageTag)
+    displayName: 'Scan Docker Image with Trivy'
+    continueOnError: false
+
+  - task: Docker@2
+    displayName: 'Push Docker image to ACR'
+    inputs:
+      containerRegistry: '$(ACRserviceconnectionName)'
+      repository: '$(ACRrepositoryName)'
+      command: 'push'
       tags: |
         $(dockerImageTag)
