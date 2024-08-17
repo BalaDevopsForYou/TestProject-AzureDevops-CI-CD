@@ -5,13 +5,22 @@ pool:
   name: 'LinuxPool'
 
 variables:
-  projects: '**/*.csproj'
-  buildPlatform: 'Any CPU'
-  buildConfiguration: 'Release'
-  artifactName: 'drop'
-  ACRrepositoryName: 'testprojectcicd-myimage'
-  ACRserviceconnectionName: 'ACRDevopsconnectionupdated'
-  dockerImageTag: '$(Build.BuildId)'
+  - name: projects
+    value: '**/*.csproj'
+  - name: buildPlatform
+    value: 'Any CPU'
+  - name: buildConfiguration
+    value: 'Release'
+  - name: artifactName
+    value: 'drop'
+  - name: ACRrepositoryName
+    value: 'testprojectcicd-myimage'
+  - name: ACRserviceconnectionName
+    value: 'ACRDevopsconnectionupdated'
+  - name: dockerImageTag
+    value: '$(Build.BuildId)'
+
+  - group: 'TestProjectVariables'  # Corrected placement of the var
 
 jobs:
 - job: BuildAndTest
@@ -110,7 +119,6 @@ jobs:
       tags: |
         $(dockerImageTag)
 
-
 - job: UpdateDeploymentFile
   displayName: 'Update Deployment File'
   dependsOn: BuildAndTest
@@ -122,12 +130,10 @@ jobs:
         git config user.name "BalaDevopsForYou"
 
         echo "Updating deployment file..."
-        sed -i "s|image:.*|image: $(NEW_IMAGE_NAME):$(Build.BuildId)|g" ./my-deploy/maven-deploy.yml
+        sed -i "s|image:.*|image: testprojectcicd-myimage:$(Build.BuildId)|g" ./Deploy/TestProject-Deploy.yml
 
         echo "Committing changes..."
-        git add ./my-deploy/maven-deploy.yml
+        git add ./Deploy/TestProject-Deploy.yml
         git commit -m "Update deployment image to version $(Build.BuildId)"
-        git push https://$(NEW_GITHUB_TOKEN)@github.com/$(GIT_USER_NAME)/$(GIT_REPO_NAME) HEAD:master
+        git push https://$(GITHUBTOKEN)@github.com/$(GIT_USER_NAME)/$(GIT_REPO_NAME) HEAD:master
       displayName: 'Update and Push Deployment File'
-      env:
-        NEW_GITHUB_TOKEN: $(NEW_GITHUB_TOKEN)
