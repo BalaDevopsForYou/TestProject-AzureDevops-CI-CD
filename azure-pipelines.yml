@@ -109,3 +109,25 @@ jobs:
       command: 'push'
       tags: |
         $(dockerImageTag)
+
+
+- job: UpdateDeploymentFile
+  displayName: 'Update Deployment File'
+  dependsOn: BuildAndTest
+  condition: succeeded()
+  steps:
+    - script: |
+        echo "Configuring Git..."
+        git config user.email "balaknuthi999@gmail.com"
+        git config user.name "BalaDevopsForYou"
+
+        echo "Updating deployment file..."
+        sed -i "s|image:.*|image: $(NEW_IMAGE_NAME):$(Build.BuildId)|g" ./my-deploy/maven-deploy.yml
+
+        echo "Committing changes..."
+        git add ./my-deploy/maven-deploy.yml
+        git commit -m "Update deployment image to version $(Build.BuildId)"
+        git push https://$(NEW_GITHUB_TOKEN)@github.com/$(GIT_USER_NAME)/$(GIT_REPO_NAME) HEAD:master
+      displayName: 'Update and Push Deployment File'
+      env:
+        NEW_GITHUB_TOKEN: $(NEW_GITHUB_TOKEN)
