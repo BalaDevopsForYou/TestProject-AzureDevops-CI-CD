@@ -13,11 +13,11 @@ RUN apt-get update && apt-get install -y unzip && \
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
 
-# Remove perl-base and zlib1g
 RUN apt-get update && \
-    apt-get remove -y perl-base zlib1g && \
-    apt-get autoremove -y && \
+    apt-get upgrade -y && \
+    apt-get install --only-upgrade perl-base zlib1g && \
     apt-get clean
+
 
 # Copy the extracted files from the build stage
 COPY --from=build /app .
