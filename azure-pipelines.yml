@@ -93,9 +93,9 @@ jobs:
     displayName: 'Build and push Docker image to ACR'
     inputs:
       containerRegistry: 'ACRDevopsconnection'
-      repository: 'testprojectcicd/yourimage'
+      repository: 'testprojectcicd'
       command: 'buildAndPush'
-      Dockerfile: '**/Dockerfile'
+      Dockerfile: 'Dockerfile'  # Adjust if Dockerfile path is different
       buildContext: '$(Build.ArtifactStagingDirectory)/$(artifactName)'
       tags: |
         $(dockerImageTag)
