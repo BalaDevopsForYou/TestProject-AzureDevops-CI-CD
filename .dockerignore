@@ -1,0 +1,4 @@
+# Example .dockerignore file
+**/obj
+**/bin
+!drop/TestProject.zip
