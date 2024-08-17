@@ -92,7 +92,7 @@ jobs:
   - task: Docker@2
     displayName: 'Build and push Docker image to ACR'
     inputs:
-      containerRegistry: 'ACRDevopsconnection'
+      containerRegistry: 'ACRDevopsconnectionupdated'
       repository: 'testprojectcicd'
       command: 'buildAndPush'
       Dockerfile: 'Dockerfile'  # Adjust if Dockerfile path is different
