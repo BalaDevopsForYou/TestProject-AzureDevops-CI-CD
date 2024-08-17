@@ -10,14 +10,8 @@ RUN apt-get update && apt-get install -y unzip && \
     unzip TestProject.zip -d . && \
     rm TestProject.zip
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS base
 WORKDIR /app
-
-RUN apt-get update && \
-    apt-get upgrade -y && \
-    apt-get install --only-upgrade perl-base zlib1g && \
-    apt-get clean
-
 
 # Copy the extracted files from the build stage
 COPY --from=build /app .
