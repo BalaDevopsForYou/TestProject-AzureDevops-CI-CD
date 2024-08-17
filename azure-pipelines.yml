@@ -9,7 +9,7 @@ variables:
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
   artifactName: 'drop'
-  dockerImageName: 'testprojectcicd.azurecr.io/yourimage'
+  #dockerImageName: 'testprojectcicd.azurecr.io/yourimage'
   dockerImageTag: '$(Build.BuildId)'
 
 jobs:
@@ -93,7 +93,7 @@ jobs:
     displayName: 'Build and push Docker image to ACR'
     inputs:
       containerRegistry: 'ACRDevopsconnectionupdated'
-      repository: 'testprojectcicd'
+      repository: 'testprojectcicd/myimage'
       command: 'buildAndPush'
       Dockerfile: 'Dockerfile'  # Adjust if Dockerfile path is different
       buildContext: '$(Build.ArtifactStagingDirectory)/$(artifactName)'
