@@ -18,7 +18,7 @@ spec:
   spec: 
     containers:
     - name: mavenwebappcontainer
-      image: testprojectcicd-myimage:51
+      image: testprojectcicd-myimage:53
       imagePullPolicy: Always
       ports:
       - containerPort: 8080
