@@ -25,7 +25,7 @@ variables:
   - name: dockerImageTag
     value: '$(Build.BuildId)'
 
-  - group: 'TestProjectVariables'  # Corrected placement of the var
+  - group: 'TestProjectVariables'
 
 jobs:
 - job: BuildAndTest
@@ -131,11 +131,11 @@ jobs:
   steps:
     - script: |
         echo "Configuring Git..."
-        git config user.email "balaknuthi999@gmail.com"
-        git config user.name "BalaDevopsForYou"
+        git config user.email $(GITHUB_EMAIL)
+        git config user.name  $(GIT_USER_NAME)
 
         echo "Updating deployment file..."
-        sed -i "s|image:.*|image: testprojectcicd-myimage:$(Build.BuildId)|g" ./Deploy/TestProject-Deploy.yml
+        sed -i "s|image:.*|image: $(ACRrepositoryName):$(Build.BuildId)|g" ./Deploy/TestProject-Deploy.yml
 
         echo "Committing changes..."
         git add ./Deploy/TestProject-Deploy.yml
