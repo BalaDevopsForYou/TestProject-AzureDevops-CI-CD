@@ -9,7 +9,8 @@ variables:
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
   artifactName: 'drop'
-  #dockerImageName: 'testprojectcicd.azurecr.io/yourimage'
+  ACRrepositoryName: 'testprojectcicd-myimage'
+  ACRserviceconnectionName: 'ACRDevopsconnectionupdated'
   dockerImageTag: '$(Build.BuildId)'
 
 jobs:
@@ -82,11 +83,19 @@ jobs:
       ArtifactName: '$(artifactName)'
       publishLocation: 'Container'
 
+
+  - script: |
+      echo "Running Trivy scan..."
+      trivy image --severity CRITICAL,HIGH --exit-code 1 --no-progress testprojectcicd.azurecr.io/$(ACRrepositoryName):$(Build.BuildId)
+    displayName: 'Scan Docker Image with Trivy'
+    continueOnError: false
+
+
   - task: Docker@2
     displayName: 'Build and push Docker image to ACR'
     inputs:
-      containerRegistry: 'ACRDevopsconnectionupdated'
-      repository: 'testprojectcicd-myimage'
+      containerRegistry: '$(ACRserviceconnectionName)'
+      repository: '$(ACRrepositoryName)'
       command: 'buildAndPush'
       Dockerfile: 'Dockerfile'  # Adjust if Dockerfile path is different
       buildContext: '$(Build.ArtifactStagingDirectory)/$(artifactName)'
