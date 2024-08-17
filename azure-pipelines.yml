@@ -82,18 +82,11 @@ jobs:
       ArtifactName: '$(artifactName)'
       publishLocation: 'Container'
 
-  - script: |
-      echo "Listing contents of $(Build.ArtifactStagingDirectory):"
-      ls -la $(Build.ArtifactStagingDirectory)
-      echo "Listing contents of $(Build.ArtifactStagingDirectory)/$(artifactName):"
-      ls -la $(Build.ArtifactStagingDirectory)/$(artifactName)
-    displayName: 'Verify drop folder contents'
-
   - task: Docker@2
     displayName: 'Build and push Docker image to ACR'
     inputs:
       containerRegistry: 'ACRDevopsconnectionupdated'
-      repository: 'testprojectcicd/myimage'
+      repository: 'testprojectcicd-myimage'
       command: 'buildAndPush'
       Dockerfile: 'Dockerfile'  # Adjust if Dockerfile path is different
       buildContext: '$(Build.ArtifactStagingDirectory)/$(artifactName)'
