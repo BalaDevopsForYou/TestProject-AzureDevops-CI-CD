@@ -2,6 +2,8 @@ try
 {
     Console.WriteLine("Hello, World!");
 
+    Console.ReadLine();
+
 }
 catch (Exception ex)
 {
