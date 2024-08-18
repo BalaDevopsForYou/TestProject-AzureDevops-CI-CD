@@ -18,6 +18,8 @@ variables:
     value: 'Release'
   - name: artifactName
     value: 'drop'
+  - name: ACRRegistryUrl
+    value: 'testprojectcicd.azurecr.io'
   - name: ACRrepositoryName
     value: 'testprojectcicd-myimage'
   - name: ACRserviceconnectionName
@@ -135,7 +137,7 @@ jobs:
         git config user.name  $(GIT_USER_NAME)
 
         echo "Updating deployment file..."
-        sed -i "s|image:.*|image: $(ACRrepositoryName):$(Build.BuildId)|g" ./Deploy/TestProject-Deploy.yml
+        sed -i "s|image:.*|image: $(ACRRegistryUrl)/(ACRrepositoryName):$(Build.BuildId)|g" ./Deploy/TestProject-Deploy.yml
 
         echo "Committing changes..."
         git add ./Deploy/TestProject-Deploy.yml
