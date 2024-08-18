@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: dotnet-app-deployment
-  namespace: TestProject
+  namespace: testproject
 spec:
   replicas: 2
   strategy:
@@ -27,7 +27,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: dotnet-app-svc
-  namespace: TestProject
+  namespace: testproject
 spec:
   type: NodePort
   selector:
