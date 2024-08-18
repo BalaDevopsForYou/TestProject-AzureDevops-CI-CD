@@ -21,3 +21,6 @@ EXPOSE 80
 
 # Set the entry point to run the application
 ENTRYPOINT ["dotnet", "TestProject.dll"]
+
+# Keep the container alive for debugging
+CMD ["sh", "-c", "dotnet TestProject.dll; tail -f /dev/null"]
