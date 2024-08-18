@@ -9,15 +9,15 @@ spec:
     type: Recreate
   selector:
     matchLabels:
-      app: dotnet-webapp
+      app: dotnet-app
   template:
     metadata:
       labels:
-        app: dotnet-webapp
+        app: dotnet-app
     spec:
       containers:
-      - name: dotnet-webapp-container
-        image: testprojectcicd-myimage:62
+      - name: dotnet-container
+        image: testprojectcicd.azurecr.io/testprojectcicd-myimage:62
         imagePullPolicy: Always
         ports:
         - containerPort: 80
@@ -25,11 +25,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: dotnet-webapp-svc
+  name: dotnet-app-svc
 spec:
   type: NodePort
   selector:
-    app: dotnet-webapp
+    app: dotnet-app
   ports:
   - port: 80
     targetPort: 80
